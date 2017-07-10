@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ttd.mapper.LogOrderOperationMapper">
+	<!-- parameter 所有查询列 -->
+	<sql id="QUERY_COLUMN_LIST">
+		<![CDATA[log_id, action, params, created, user_id]]>
+	</sql>
+	
+	<!-- parameter 所有查询列 需自己修改，自定义简化版本返回内容 -->
+	<sql id="QUERY_SIMPLE_COLUMN_LIST">
+		<![CDATA[log_id, action, params, created, user_id]]>
+	</sql>
+	
+	<!-- parameter 查询列来源表-->
+	<sql id="QUERY_FROM_TABLE"><![CDATA[FROM log_order_operation]]></sql>
+	
+	<!-- 全部条件(包括queryData的扩展),除开主键  -->
+	<sql id="QUERY_WHERE_CLAUSE">
+		<where>
+			    <if test="logId != null"><![CDATA[AND log_id = #{logId}]]></if>
+			    <if test="action != null"><![CDATA[AND action = #{action}]]></if>
+			    <if test="params != null"><![CDATA[AND params = #{params}]]></if>
+			    <if test="created != null"><![CDATA[AND created = #{created}]]></if>
+			    <if test="userId != null"><![CDATA[AND user_id = #{userId}]]></if>
+			<if test="keyword != null and keyword != ''">
+				<![CDATA[AND (log_id = #{keyword} OR action LIKE CONCAT('%', #{keyword},'%'))]]>
+			</if>
+		</where>
+	</sql>
+  	
+  	<!-- 更新列字段,只要不为NULL则更新,除开主键 -->
+	<sql id="UPDATE_COLUMN_SET">
+		<set>
+			    <if test="logId != null"><![CDATA[log_id = #{logId},]]></if>
+			    <if test="action != null"><![CDATA[action = #{action},]]></if>
+			    <if test="params != null"><![CDATA[params = #{params},]]></if>
+			    <if test="created != null"><![CDATA[created = #{created},]]></if>
+			    <if test="userId != null"><![CDATA[user_id = #{userId},]]></if>
+		</set>
+	</sql>
+	
+	<!-- 智能排序与分页 -->
+  	<sql id="QUERY_ORDER_LIMIT_CONDTION">
+  		<if test="orderField != null and orderField != '' and orderFieldType != null and orderFieldType != ''"><![CDATA[ORDER BY ${orderField} ${orderFieldType}]]></if>
+  		<if test="startIndex != null and startIndex &gt;= 0 and pageSize != null and pageSize &gt; 0"><![CDATA[LIMIT #{startIndex}, #{pageSize}]]></if>
+  	</sql>
+	
+	<!-- 插入记录 -->
+	<insert id="insertEntry" parameterType="logOrderOperation"  useGeneratedKeys="true" keyColumn="log_id" keyProperty="logId">
+		<![CDATA[
+		INSERT INTO log_order_operation (
+			log_id, action, params, created, user_id
+		) VALUES (
+			#{logId}, #{action}, #{params}, #{created}, #{userId}
+		)
+		]]>
+	</insert>
+	
+	<!-- 删除记录,主键删除 -->
+	<delete id="deleteByKey" parameterType="long">
+		<![CDATA[DELETE FROM log_order_operation WHERE log_id = #{logId}]]>
+	</delete>
+	
+	<!-- 删除记录,主键删除-逻辑删除 -->
+	<delete id="deleteByKeyLogic" parameterType="long">
+		<![CDATA[UPDATE TABLE log_order_operation SET deleted = 1 WHERE log_id = #{logId}]]>
+	</delete>
+	
+	<!-- 删除记录,主键IN(array) -->
+	<delete id="deleteByArrayKey" parameterType="java.lang.reflect.Array">
+		<![CDATA[DELETE FROM log_order_operation WHERE log_id IN]]>
+		<foreach collection="array" item="id"  open="(" separator="," close=")">
+			<![CDATA[#{id}]]>
+		</foreach>
+	</delete>
+	
+	<!-- 删除,通过条件 -->
+	<update id="deleteByCondtion" parameterType="logOrderOperation">
+		<![CDATA[DELETE FROM log_order_operation]]>
+		<include refid="QUERY_WHERE_CLAUSE"/>
+	</update>
+	
+	<!-- 修改记录通过主键 -->
+	<update id="updateByKey" parameterType="logOrderOperation">
+		<![CDATA[UPDATE log_order_operation]]>
+		<include refid="UPDATE_COLUMN_SET"/>
+		<![CDATA[WHERE log_id = #{logId}]]>
+	</update>
+	
+	<!-- 查询,通过主键 -->
+	<select id="selectEntry" parameterType="long" resultType="logOrderOperation">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<![CDATA[WHERE log_id = #{logId}]]>
+	</select>
+	
+	<!-- 查询,通过主键 -->
+	<select id="selectSimpleEntry" parameterType="long" resultType="logOrderOperation">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_SIMPLE_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<![CDATA[WHERE log_id = #{logId}]]>
+	</select>
+	
+	<!-- 查询,通过条件 -->
+	<select id="selectEntryList" parameterType="logOrderOperation" resultType="logOrderOperation">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+  		<include refid="QUERY_ORDER_LIMIT_CONDTION"/>
+	</select>
+	
+	<!-- 查询简化版实例,通过条件 -->
+	<select id="selectSimpleEntryList" parameterType="logOrderOperation" resultType="logOrderOperation">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_SIMPLE_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+  		<include refid="QUERY_ORDER_LIMIT_CONDTION"/>
+	</select>
+	
+	<!-- 总数查询,通过条件 -->
+	<select id="selectEntryListCount" parameterType="logOrderOperation" resultType="int">
+  		<![CDATA[SELECT COUNT(log_id) AS dataCount]]>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+	</select>
+</mapper>

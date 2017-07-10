@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ttd.mapper.HouseInfoMapper">
+	<!-- parameter 所有查询列 -->
+	<sql id="QUERY_COLUMN_LIST">
+		<![CDATA[house_id, house_name, area_id, house_address, lat, lng, created]]>
+	</sql>
+	
+	<!-- parameter 所有查询列 需自己修改，自定义简化版本返回内容 -->
+	<sql id="QUERY_SIMPLE_COLUMN_LIST">
+		<![CDATA[house_id, house_name, area_id, house_address, lat, lng, created]]>
+	</sql>
+	
+	<!-- parameter 查询列来源表-->
+	<sql id="QUERY_FROM_TABLE"><![CDATA[FROM house_info]]></sql>
+	
+	<!-- 全部条件(包括queryData的扩展),除开主键  -->
+	<sql id="QUERY_WHERE_CLAUSE">
+		<where>
+			    <if test="houseId != null"><![CDATA[AND house_id = #{houseId}]]></if>
+			    <if test="houseName != null"><![CDATA[AND house_name = #{houseName}]]></if>
+			    <if test="areaId != null"><![CDATA[AND area_id = #{areaId}]]></if>
+			    <if test="houseAddress != null"><![CDATA[AND house_address = #{houseAddress}]]></if>
+			    <if test="lat != null"><![CDATA[AND lat = #{lat}]]></if>
+			    <if test="lng != null"><![CDATA[AND lng = #{lng}]]></if>
+			    <if test="created != null"><![CDATA[AND created = #{created}]]></if>
+			<if test="keyword != null and keyword != ''">
+				<![CDATA[AND (house_id = #{keyword} OR house_name LIKE CONCAT('%', #{keyword},'%'))]]>
+			</if>
+		</where>
+	</sql>
+  	
+  	<!-- 更新列字段,只要不为NULL则更新,除开主键 -->
+	<sql id="UPDATE_COLUMN_SET">
+		<set>
+			    <if test="houseId != null"><![CDATA[house_id = #{houseId},]]></if>
+			    <if test="houseName != null"><![CDATA[house_name = #{houseName},]]></if>
+			    <if test="areaId != null"><![CDATA[area_id = #{areaId},]]></if>
+			    <if test="houseAddress != null"><![CDATA[house_address = #{houseAddress},]]></if>
+			    <if test="lat != null"><![CDATA[lat = #{lat},]]></if>
+			    <if test="lng != null"><![CDATA[lng = #{lng},]]></if>
+			    <if test="created != null"><![CDATA[created = #{created},]]></if>
+		</set>
+	</sql>
+	
+	<!-- 智能排序与分页 -->
+  	<sql id="QUERY_ORDER_LIMIT_CONDTION">
+  		<if test="orderField != null and orderField != '' and orderFieldType != null and orderFieldType != ''"><![CDATA[ORDER BY ${orderField} ${orderFieldType}]]></if>
+  		<if test="startIndex != null and startIndex &gt;= 0 and pageSize != null and pageSize &gt; 0"><![CDATA[LIMIT #{startIndex}, #{pageSize}]]></if>
+  	</sql>
+	
+	<!-- 插入记录 -->
+	<insert id="insertEntry" parameterType="houseInfo"  useGeneratedKeys="true" keyColumn="house_id" keyProperty="houseId">
+		<![CDATA[
+		INSERT INTO house_info (
+			house_id, house_name, area_id, house_address, lat, lng, created
+		) VALUES (
+			#{houseId}, #{houseName}, #{areaId}, #{houseAddress}, #{lat}, #{lng}, #{created}
+		)
+		]]>
+	</insert>
+	
+	<!-- 删除记录,主键删除 -->
+	<delete id="deleteByKey" parameterType="long">
+		<![CDATA[DELETE FROM house_info WHERE house_id = #{houseId}]]>
+	</delete>
+	
+	<!-- 删除记录,主键删除-逻辑删除 -->
+	<delete id="deleteByKeyLogic" parameterType="long">
+		<![CDATA[UPDATE TABLE house_info SET deleted = 1 WHERE house_id = #{houseId}]]>
+	</delete>
+	
+	<!-- 删除记录,主键IN(array) -->
+	<delete id="deleteByArrayKey" parameterType="java.lang.reflect.Array">
+		<![CDATA[DELETE FROM house_info WHERE house_id IN]]>
+		<foreach collection="array" item="id"  open="(" separator="," close=")">
+			<![CDATA[#{id}]]>
+		</foreach>
+	</delete>
+	
+	<!-- 删除,通过条件 -->
+	<update id="deleteByCondtion" parameterType="houseInfo">
+		<![CDATA[DELETE FROM house_info]]>
+		<include refid="QUERY_WHERE_CLAUSE"/>
+	</update>
+	
+	<!-- 修改记录通过主键 -->
+	<update id="updateByKey" parameterType="houseInfo">
+		<![CDATA[UPDATE house_info]]>
+		<include refid="UPDATE_COLUMN_SET"/>
+		<![CDATA[WHERE house_id = #{houseId}]]>
+	</update>
+	
+	<!-- 查询,通过主键 -->
+	<select id="selectEntry" parameterType="long" resultType="houseInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<![CDATA[WHERE house_id = #{houseId}]]>
+	</select>
+	
+	<!-- 查询,通过主键 -->
+	<select id="selectSimpleEntry" parameterType="long" resultType="houseInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_SIMPLE_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<![CDATA[WHERE house_id = #{houseId}]]>
+	</select>
+	
+	<!-- 查询,通过条件 -->
+	<select id="selectEntryList" parameterType="houseInfo" resultType="houseInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+  		<include refid="QUERY_ORDER_LIMIT_CONDTION"/>
+	</select>
+	
+	<!-- 查询简化版实例,通过条件 -->
+	<select id="selectSimpleEntryList" parameterType="houseInfo" resultType="houseInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_SIMPLE_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+  		<include refid="QUERY_ORDER_LIMIT_CONDTION"/>
+	</select>
+	
+	<!-- 总数查询,通过条件 -->
+	<select id="selectEntryListCount" parameterType="houseInfo" resultType="int">
+  		<![CDATA[SELECT COUNT(house_id) AS dataCount]]>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+	</select>
+</mapper>

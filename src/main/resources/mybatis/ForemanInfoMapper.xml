@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ttd.mapper.ForemanInfoMapper">
+	<!-- parameter 所有查询列 -->
+	<sql id="QUERY_COLUMN_LIST">
+		<![CDATA[foreman_id, foreman_name, score, order_num, complain_num, state, created, lat, lng]]>
+	</sql>
+	
+	<!-- parameter 所有查询列 需自己修改，自定义简化版本返回内容 -->
+	<sql id="QUERY_SIMPLE_COLUMN_LIST">
+		<![CDATA[foreman_id, foreman_name, score, order_num, complain_num, state, created, lat, lng]]>
+	</sql>
+	
+	<!-- parameter 查询列来源表-->
+	<sql id="QUERY_FROM_TABLE"><![CDATA[FROM foreman_info]]></sql>
+	
+	<!-- 全部条件(包括queryData的扩展),除开主键  -->
+	<sql id="QUERY_WHERE_CLAUSE">
+		<where>
+			    <if test="foremanId != null"><![CDATA[AND foreman_id = #{foremanId}]]></if>
+			    <if test="foremanName != null"><![CDATA[AND foreman_name = #{foremanName}]]></if>
+			    <if test="score != null"><![CDATA[AND score = #{score}]]></if>
+			    <if test="orderNum != null"><![CDATA[AND order_num = #{orderNum}]]></if>
+			    <if test="complainNum != null"><![CDATA[AND complain_num = #{complainNum}]]></if>
+			    <if test="state != null"><![CDATA[AND state = #{state}]]></if>
+			    <if test="created != null"><![CDATA[AND created = #{created}]]></if>
+			    <if test="lat != null"><![CDATA[AND lat = #{lat}]]></if>
+			    <if test="lng != null"><![CDATA[AND lng = #{lng}]]></if>
+			<if test="keyword != null and keyword != ''">
+				<![CDATA[AND (foreman_id = #{keyword} OR foreman_name LIKE CONCAT('%', #{keyword},'%'))]]>
+			</if>
+		</where>
+	</sql>
+  	
+  	<!-- 更新列字段,只要不为NULL则更新,除开主键 -->
+	<sql id="UPDATE_COLUMN_SET">
+		<set>
+			    <if test="foremanId != null"><![CDATA[foreman_id = #{foremanId},]]></if>
+			    <if test="foremanName != null"><![CDATA[foreman_name = #{foremanName},]]></if>
+			    <if test="score != null"><![CDATA[score = #{score},]]></if>
+			    <if test="orderNum != null"><![CDATA[order_num = #{orderNum},]]></if>
+			    <if test="complainNum != null"><![CDATA[complain_num = #{complainNum},]]></if>
+			    <if test="state != null"><![CDATA[state = #{state},]]></if>
+			    <if test="created != null"><![CDATA[created = #{created},]]></if>
+			    <if test="lat != null"><![CDATA[lat = #{lat},]]></if>
+			    <if test="lng != null"><![CDATA[lng = #{lng},]]></if>
+		</set>
+	</sql>
+	
+	<!-- 智能排序与分页 -->
+  	<sql id="QUERY_ORDER_LIMIT_CONDTION">
+  		<if test="orderField != null and orderField != '' and orderFieldType != null and orderFieldType != ''"><![CDATA[ORDER BY ${orderField} ${orderFieldType}]]></if>
+  		<if test="startIndex != null and startIndex &gt;= 0 and pageSize != null and pageSize &gt; 0"><![CDATA[LIMIT #{startIndex}, #{pageSize}]]></if>
+  	</sql>
+	
+	<!-- 插入记录 -->
+	<insert id="insertEntry" parameterType="foremanInfo"  useGeneratedKeys="true" keyColumn="foreman_id" keyProperty="foremanId">
+		<![CDATA[
+		INSERT INTO foreman_info (
+			foreman_id, foreman_name, score, order_num, complain_num, state, created, lat, lng
+		) VALUES (
+			#{foremanId}, #{foremanName}, #{score}, #{orderNum}, #{complainNum}, #{state}, #{created}, #{lat}, #{lng}
+		)
+		]]>
+	</insert>
+	
+	<!-- 删除记录,主键删除 -->
+	<delete id="deleteByKey" parameterType="long">
+		<![CDATA[DELETE FROM foreman_info WHERE foreman_id = #{foremanId}]]>
+	</delete>
+	
+	<!-- 删除记录,主键删除-逻辑删除 -->
+	<delete id="deleteByKeyLogic" parameterType="long">
+		<![CDATA[UPDATE TABLE foreman_info SET deleted = 1 WHERE foreman_id = #{foremanId}]]>
+	</delete>
+	
+	<!-- 删除记录,主键IN(array) -->
+	<delete id="deleteByArrayKey" parameterType="java.lang.reflect.Array">
+		<![CDATA[DELETE FROM foreman_info WHERE foreman_id IN]]>
+		<foreach collection="array" item="id"  open="(" separator="," close=")">
+			<![CDATA[#{id}]]>
+		</foreach>
+	</delete>
+	
+	<!-- 删除,通过条件 -->
+	<update id="deleteByCondtion" parameterType="foremanInfo">
+		<![CDATA[DELETE FROM foreman_info]]>
+		<include refid="QUERY_WHERE_CLAUSE"/>
+	</update>
+	
+	<!-- 修改记录通过主键 -->
+	<update id="updateByKey" parameterType="foremanInfo">
+		<![CDATA[UPDATE foreman_info]]>
+		<include refid="UPDATE_COLUMN_SET"/>
+		<![CDATA[WHERE foreman_id = #{foremanId}]]>
+	</update>
+	
+	<!-- 查询,通过主键 -->
+	<select id="selectEntry" parameterType="long" resultType="foremanInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<![CDATA[WHERE foreman_id = #{foremanId}]]>
+	</select>
+	
+	<!-- 查询,通过主键 -->
+	<select id="selectSimpleEntry" parameterType="long" resultType="foremanInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_SIMPLE_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<![CDATA[WHERE foreman_id = #{foremanId}]]>
+	</select>
+	
+	<!-- 查询,通过条件 -->
+	<select id="selectEntryList" parameterType="foremanInfo" resultType="foremanInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+  		<include refid="QUERY_ORDER_LIMIT_CONDTION"/>
+	</select>
+	
+	<!-- 查询简化版实例,通过条件 -->
+	<select id="selectSimpleEntryList" parameterType="foremanInfo" resultType="foremanInfo">
+  		<![CDATA[SELECT]]>
+    	<include refid="QUERY_SIMPLE_COLUMN_LIST"/>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+  		<include refid="QUERY_ORDER_LIMIT_CONDTION"/>
+	</select>
+	
+	<!-- 总数查询,通过条件 -->
+	<select id="selectEntryListCount" parameterType="foremanInfo" resultType="int">
+  		<![CDATA[SELECT COUNT(foreman_id) AS dataCount]]>
+  		<include refid="QUERY_FROM_TABLE"/>
+  		<include refid="QUERY_WHERE_CLAUSE"/>
+	</select>
+</mapper>

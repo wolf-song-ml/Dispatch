@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<configuration status="OFF">
+	<appenders>
+		<Console name="CONSOLE" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+		
+		 <!-- <NoSql name="mongoAppender" bufferSize="10"> 建议bufferSize配置,减少频繁写操作。
+            <MongoDb databaseName="local" collectionName="demo" server="192.168.0.251" port="27017"/>
+        </NoSql> -->
+                
+	</appenders>
+	<loggers>
+		<root level="INFO">
+			<appender-ref ref="CONSOLE" />
+			<!-- <appender-ref ref="mongoAppender"/> -->
+		</root>
+	</loggers>
+</configuration>
